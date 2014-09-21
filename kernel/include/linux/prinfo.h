@@ -1,7 +1,7 @@
 #ifndef _PTRINFO_H
 #define _PTRINFO_H
 
-#include <sys/types.h>
+#include <linux/types.h>
 
 struct prinfo {
 	pid_t parent_pid;		/* process id of parent */

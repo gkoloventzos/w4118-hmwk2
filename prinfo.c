@@ -13,8 +13,9 @@ int main(int argc, char **argv) {
 		printf("Usage: prinfo_test <number of processes\n>");
 		return 0;
 	}
+	buf = calloc(number_of_tasks, sizeof(struct prinfo));
 	number_of_tasks = atoi(argv[1]);
-	out = prinfo(buf,&number_of_tasks);
+	out = prinfo(&buf,&number_of_tasks);
 	if (out < 0){
 		perror("error: ");
 		return 1;
@@ -22,18 +23,18 @@ int main(int argc, char **argv) {
 	depth = 0;
 	change_father = 0;
 
-	current_father = buf->parent_pid;
+	current_father = buf[0].parent_pid;
 	for(i = 0; i < number_of_tasks; i++) {
 		if (change_father) {
-			current_father = buf->parent_pid;
+			current_father = buf[i].parent_pid;
 			change_father = 0;
 		}
-		if (buf->parent_pid != current_father) {
+		if (buf[i]parent_pid != current_father) {
 			depth++;
-			current_father = buf->parent_pid;
+			current_father = buf[i].parent_pid;
 		}
-		print_process(*buf,depth);
-		if (buf->next_sibling_pid == 0) {
+		print_process(buf[i],depth);
+		if (buf[i].next_sibling_pid == 0) {
 			depth--;
 			change_father = 1;
 		}

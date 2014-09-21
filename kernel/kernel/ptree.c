@@ -6,6 +6,9 @@
 
 #include <linux/prinfo.h>
 #include <asm-generic/errno-base.h>
+#include <linux/spinlock.h>
+
+extern rwlock_t tasklist_lock;
 
 int ptree(struct prinfo *buf, int *nr)
 {
@@ -27,6 +30,12 @@ int ptree(struct prinfo *buf, int *nr)
  		errno = -EFAULT;
 		goto error;
 	}
+
+	read_lock(&tasklist_lock);
+
+	/* stuff goes here */
+
+	read_unlock(&tasklist_lock);
 
 	errno = 0;
 

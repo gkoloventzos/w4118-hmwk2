@@ -18,9 +18,9 @@ int main(char *argsv, int argsc)
 
 	syscall(223, &p, &nr);
 
+	printf("%s,%d,%ld,%d,%d,%d,%d\n", p[0].comm, p[0].pid, p[0].state,
+				p[0].parent_pid, p[0].first_child_pid, p[0].next_sibling_pid, p[0].uid);
 	printf("%s,%d,%ld,%d,%d,%d,%d\n", p[1].comm, p[1].pid, p[1].state,
 				p[1].parent_pid, p[1].first_child_pid, p[1].next_sibling_pid, p[1].uid);
-	printf("%s,%d,%ld,%d,%d,%d,%d\n", p[2].comm, p[2].pid, p[2].state,
-				p[2].parent_pid, p[2].first_child_pid, p[2].next_sibling_pid, p[2].uid);
 
 }

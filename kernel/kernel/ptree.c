@@ -61,8 +61,8 @@ void dfs(struct prinfo *buf, struct task_struct *tsk, int *iter, int *nr)
         cur->parent_pid = tsk->real_parent->pid;
         cur->pid = tsk->pid;
         /*
-         * cur->next_sibling_pid = tsk->
-         * cur->first_child_pid = tsk->
+         * cur->next_sibling_pid = tsk->p_ysptr; younger sibling
+         * cur->first_child_pid = tsk->p_cptr; youngest child
          * cur->uid = (long) tsk->cred->uid;
          */
         cur->state = tsk->state;

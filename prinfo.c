@@ -16,15 +16,20 @@ int main(int argc, char **argv) {
 	buf = calloc(number_of_tasks, sizeof(struct prinfo));
 	number_of_tasks = atoi(argv[1]);
 	out = prinfo(&buf,&number_of_tasks);
+	/* syscall(223, &buf, &number_of_tasks);*/
 	if (out < 0){
 		perror("error: ");
 		return 1;
 	}
 	depth = 0;
 	change_father = 0;
-
+	/*
+	 *Your system call should return the total number of entries on
+	 *success (this may be bigger than the actual number of entries copied)
+	 * seg fault?
+	 */
 	current_father = buf[0].parent_pid;
-	for(i = 0; i < number_of_tasks; i++) {
+	for(i = 0; i < out; i++) {
 		if (change_father) {
 			current_father = buf[i].parent_pid;
 			change_father = 0;
@@ -38,7 +43,6 @@ int main(int argc, char **argv) {
 			depth--;
 			change_father = 1;
 		}
-		/*next struct*/
 	}
 	return 0;
 }

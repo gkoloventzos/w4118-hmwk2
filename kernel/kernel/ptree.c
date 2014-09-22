@@ -1,22 +1,24 @@
 /*
  *  linux/kernel/ptree.c
  *
- *  Copyright (C) 2014 Vaggelis Atlidakis, Georgios Koloventzos, Andrei Papancea
+ *  Copyright (C) 2014 V. Atlidakis, G. Koloventzos, A. Papancea
  */
 
 #include <linux/prinfo.h>
 #include <linux/init_task.h>
-#include <asm-generic/errno-base.h>
-#include <linux/spinlock.h>
 #include <linux/slab.h>
 
-extern rwlock_t tasklist_lock;
-void dfs(struct prinfo *, struct task_struct *, int, int *);
 
-int ptree(struct prinfo *buf, int *nr)
+#include <asm-generic/errno-base.h>
+
+static void dfs(struct prinfo *, struct task_struct *, int *, int *);
+
+
+asmlinkage int sys_ptree(struct prinfo *buf, int *nr)
 {
 	int errno;
 	struct prinfo *kbuf;
+        int iterations;
 
 	if (buf == NULL || nr == NULL) {
 		errno = -EINVAL;
@@ -26,15 +28,17 @@ int ptree(struct prinfo *buf, int *nr)
 		errno = -EINVAL;
 		goto error;
 	}
-        kbuf = kmalloc( *nr * sizeof(struct prinfo), GFP_KERNEL);
+        kbuf = kmalloc(*nr * sizeof(struct prinfo), GFP_KERNEL);
         if (!kbuf) {
                 errno = -ENOMEM;
                 goto error;
         }
-	read_lock(&tasklist_lock);
-        dfs(kbuf, &init_task, 0, nr);
+        printk(KERN_ERR "Here I am: %d\n", *nr);
+        read_lock(&tasklist_lock);
+        iterations = 0;
+        dfs(kbuf, &(init_task), &iterations, nr);
 	read_unlock(&tasklist_lock);
-	if (copy_to_user(buf, &kbuf, *nr * sizeof(struct prinfo))) {
+	if (copy_to_user(buf, kbuf, *nr * sizeof(struct prinfo))) {
  		errno = -EFAULT;
 		goto error;
 	}
@@ -45,26 +49,30 @@ error:
 }
 
 
-void dfs(struct prinfo *buf, struct task_struct *tsk, int iter, int *nr)
+void dfs(struct prinfo *buf, struct task_struct *tsk, int *iter, int *nr)
 {
         struct task_struct *child;
         struct prinfo *cur;
 
-        if (iter == *nr)
+        if (*iter >= *nr)
                 return;
-
         /* Register info for current node */
-        cur = (struct prinfo *)(buf + iter);
+        cur = buf + *iter;
         cur->parent_pid = tsk->real_parent->pid;
         cur->pid = tsk->pid;
-//        cur->next_sibling_pid = tsk->
+        /*
+         * cur->next_sibling_pid = tsk->
+         * cur->first_child_pid = tsk->
+         * cur->uid = (long) tsk->cred->uid;
+         */
         cur->state = tsk->state;
-        cur->uid = tsk->cred->uid;
-        strcpy(cur->comm, tsk->comm);
-
+        printk(KERN_ERR "4-Here I am: %d\n", *iter);
+        get_task_comm(cur->comm, tsk);
+        printk(KERN_ERR "6-Here I am: %d\n", *iter);
         /* Continue in a dfs fashion */
+        (*iter)++;
         list_for_each_entry(child, &tsk->children, children) {
-                dfs(buf, child, iter + 1, nr);
+                dfs(buf, child, iter, nr);
         }
         return;
 }

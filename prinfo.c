@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/types.h>
 
 void print_process(struct prinfo ptr, int depth);
 

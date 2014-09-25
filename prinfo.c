@@ -1,6 +1,8 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include "prinfo.h"
 
 void print_process(struct prinfo ptr, int depth);
 
@@ -16,8 +18,8 @@ int main(int argc, char **argv) {
 	}
 	buf = calloc(number_of_tasks, sizeof(struct prinfo));
 	number_of_tasks = atoi(argv[1]);
-	out = prinfo(&buf,&number_of_tasks);
-	/* syscall(223, &buf, &number_of_tasks);*/
+	//out = prinfo(&buf,&number_of_tasks);
+	out = syscall(223, &buf, &number_of_tasks);
 	if (out < 0){
 		perror("error: ");
 		return 1;
@@ -35,7 +37,7 @@ int main(int argc, char **argv) {
 			current_father = buf[i].parent_pid;
 			change_father = 0;
 		}
-		if (buf[i]parent_pid != current_father) {
+		if (buf[i].parent_pid != current_father) {
 			depth++;
 			current_father = buf[i].parent_pid;
 		}
@@ -53,7 +55,7 @@ void print_process(struct prinfo p, int depth){
 	int i;
 	for (i = 0; i < depth; i++)
 		printf("\t");
-	printf("%s,%d,%ld,%d,%d,%d,%d\n", p.comm, p.pid, p.state,
+	printf("%s,%d,%ld,%d,%d,%d,%ld\n", p.comm, p.pid, p.state,
 	p.parent_pid, p.first_child_pid, p.next_sibling_pid, p.uid);
 
 }

@@ -13,6 +13,7 @@
 
 //static void dfs(struct prinfo *, struct task_struct *, int *, int *);
 static void full_prinfo(struct prinfo *, struct task_struct *);
+static void print_task(struct task_struct *);
 
 
 asmlinkage int sys_ptree(struct prinfo *buf, int *nr)
@@ -21,6 +22,7 @@ asmlinkage int sys_ptree(struct prinfo *buf, int *nr)
 	struct task_struct *ega_task, *cur;
 	struct prinfo *kbuf;
         int iterations, store;
+	struct list_head *list;
 
 	if (buf == NULL || nr == NULL) {
 		errno = -EINVAL;
@@ -41,24 +43,26 @@ asmlinkage int sys_ptree(struct prinfo *buf, int *nr)
 	iterations = 0;
 	store = 1;
 	while (iterations <= *nr) { 
-		if (ega_task == &init_task && store == 0)
+		print_task(ega_task);
+		if (ega_task == &init_task && iterations != 0)
 			break; /*More iterations than processes*/
 		cur = ega_task;
-		if (store) {
-			full_prinfo(buf + iterations, cur);
-			iterations++;
-		}
-		store = 1;
+		full_prinfo(kbuf + iterations, cur);
+		iterations++;
 		if (list_empty(&cur->children)) {
+        		printk(KERN_ERR "empty children list");
 			ega_task = cur->real_parent;
-			store = 0;
 			continue;
 		} else {
-			ega_task = list_entry(cur->children.next,\
-				   struct task_struct, children);
+        		printk(KERN_ERR "not empty children list");
+			list = &(cur->children);
+			ega_task = list_first_entry(list, struct task_struct,\
+						children);
+       	 		printk(KERN_ERR "Here: %s\n", ega_task->comm);
 			continue;
 		}
-		if (&cur->sibling.next == cur->real_parent) {
+		if (list_entry(cur->sibling.next,struct task_struct, children)\
+				 == cur->real_parent) {
 			ega_task = list_entry(cur->real_parent->sibling.next, \
 					      struct task_struct, children);
 			continue;
@@ -91,6 +95,12 @@ void full_prinfo(struct prinfo *cur, struct task_struct *tsk)
          * cur->uid = (long) tsk->cred->uid;                                    
          */ 
 	return ;
+
+}
+
+void print_task(struct task_struct *tsk){
+
+	printk(KERN_ERR "%s,%d,%ld", tsk->comm, tsk->pid, tsk->state);
 
 }
 

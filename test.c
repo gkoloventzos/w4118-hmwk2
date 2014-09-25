@@ -13,14 +13,14 @@ struct prinfo {
 
 int main(char *argsv, int argsc)
 {
-	struct prinfo p[2];
-	int nr = 2;
+	struct prinfo p[4];
+	int nr = 4;
+	int i;
 
 	syscall(223, &p, &nr);
 
-	printf("%s,%d,%ld,%d,%d,%d,%d\n", p[0].comm, p[0].pid, p[0].state,
-				p[0].parent_pid, p[0].first_child_pid, p[0].next_sibling_pid, p[0].uid);
-	printf("%s,%d,%ld,%d,%d,%d,%d\n", p[1].comm, p[1].pid, p[1].state,
-				p[1].parent_pid, p[1].first_child_pid, p[1].next_sibling_pid, p[1].uid);
+	for (i=0;i<4;i++)
+		printf("%s,%d,%ld,%d,%d,%d,%d\n", p[i].comm, p[i].pid, p[i].state,\
+				p[i].parent_pid, p[i].first_child_pid, p[i].next_sibling_pid, p[i].uid);
 
 }

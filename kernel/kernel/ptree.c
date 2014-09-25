@@ -11,7 +11,7 @@
 
 #include <asm-generic/errno-base.h>
 
-static void dfs(struct prinfo *, struct task_struct *, int *, int *);
+//static void dfs(struct prinfo *, struct task_struct *, int *, int *);
 static void full_prinfo(struct prinfo *, struct task_struct *);
 
 
@@ -38,28 +38,31 @@ asmlinkage int sys_ptree(struct prinfo *buf, int *nr)
         printk(KERN_ERR "Here I am: %d\n", *nr);
         read_lock(&tasklist_lock);
 	ega_task = &init_task;
-	interations = 0;
+	iterations = 0;
 	store = 1;
-	while (interations <= *nr) {
+	while (iterations <= *nr) { 
+		if (ega_task == &init_task && store == 0)
+			break; /*More iterations than processes*/
 		cur = ega_task;
 		if (store) {
 			full_prinfo(buf + iterations, cur);
 			iterations++;
 		}
 		store = 1;
-		if (!list_empty(cur->children)) {
-			ega_task = list_entry(cur->children->next,\
-				   struct task_struct, children);
+		if (list_empty(&cur->children)) {
+			ega_task = cur->real_parent;
+			store = 0;
 			continue;
 		} else {
-			/* Go to next sibling*/
+			ega_task = list_entry(cur->children.next,\
+				   struct task_struct, children);
+			continue;
 		}
-		if (!list_empty(cur->siblings)){
-			ega_task = cur->p_cptr;
-			continue;	
+		if (&cur->sibling.next == cur->real_parent) {
+			ega_task = list_entry(cur->real_parent->sibling.next, \
+					      struct task_struct, children);
+			continue;
 		}
-		
-
 	}
 	read_unlock(&tasklist_lock);
 	if (copy_to_user(buf, kbuf, *nr * sizeof(struct prinfo))) {
@@ -91,30 +94,30 @@ void full_prinfo(struct prinfo *cur, struct task_struct *tsk)
 
 }
 
-void dfs(struct prinfo *buf, struct task_struct *tsk, int *iter, int *nr)
+/*void dfs(struct prinfo *buf, struct task_struct *tsk, int *iter, int *nr)
 {
         struct task_struct *child;
         struct prinfo *cur;
 
         if (*iter >= *nr)
-                return;
+                return;*/
         /* Register info for current node */
-        cur = buf + *iter;
-        cur->parent_pid = tsk->real_parent->pid;
-        cur->pid = tsk->pid;
+//        cur = buf + *iter;
+//        cur->parent_pid = tsk->real_parent->pid;
+//        cur->pid = tsk->pid;
         /*
          * cur->next_sibling_pid = tsk->p_ysptr; younger sibling
          * cur->first_child_pid = tsk->p_cptr; youngest child
          * cur->uid = (long) tsk->cred->uid;
          */
-        cur->state = tsk->state;
-        printk(KERN_ERR "4-Here I am: %d\n", *iter);
-        get_task_comm(cur->comm, tsk);
-        printk(KERN_ERR "6-Here I am: %d\n", *iter);
+//        cur->state = tsk->state;
+//        printk(KERN_ERR "4-Here I am: %d\n", *iter);
+//        get_task_comm(cur->comm, tsk);
+//        printk(KERN_ERR "6-Here I am: %d\n", *iter);
         /* Continue in a dfs fashion */
-        (*iter)++;
+        /*(*iter)++;
         list_for_each_entry(child, &tsk->children, children) {
                 dfs(buf, child, iter, nr);
         }
         return;
-}
+}*/

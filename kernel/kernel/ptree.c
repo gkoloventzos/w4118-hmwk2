@@ -43,30 +43,36 @@ asmlinkage int sys_ptree(struct prinfo *buf, int *nr)
 	iterations = 0;
 	store = 1;
 	while (iterations <= *nr) { 
-		print_task(ega_task);
 		if (ega_task == &init_task && iterations != 0)
 			break; /*More iterations than processes*/
+		print_task(ega_task);
 		cur = ega_task;
 		full_prinfo(kbuf + iterations, cur);
 		iterations++;
-		if (list_empty(&cur->children)) {
-        		printk(KERN_ERR "empty children list");
-			ega_task = cur->real_parent;
-			continue;
-		} else {
+		if (!list_empty(&cur->children)) {
         		printk(KERN_ERR "not empty children list");
 			list = &(cur->children);
 			ega_task = list_first_entry(list, struct task_struct,\
-						children);
+						sibling);
        	 		printk(KERN_ERR "Here: %s\n", ega_task->comm);
 			continue;
 		}
-		if (list_entry(cur->sibling.next,struct task_struct, children)\
-				 == cur->real_parent) {
-			ega_task = list_entry(cur->real_parent->sibling.next, \
-					      struct task_struct, children);
+		if (!list_empty(&cur->sibling)) {
+        		printk(KERN_ERR "not empty sibling list");
+			list = &(cur->sibling);
+			ega_task = list_first_entry(list, struct task_struct,\
+						sibling);
+       	 		printk(KERN_ERR "Here: %s\n", ega_task->comm);
 			continue;
 		}
+		printk(KERN_ERR "both lists empty look to your father"); 
+		cur = cur->real_parent;
+		while (list_empty(&cur->sibling) && cur != &init_task){
+			cur = cur->real_parent;
+		}
+		list = &(cur->sibling);
+		ega_task = list_first_entry(list, struct task_struct, sibling);
+		printk(KERN_ERR "Here: %s\n", ega_task->comm);
 	}
 	read_unlock(&tasklist_lock);
 	if (copy_to_user(buf, kbuf, *nr * sizeof(struct prinfo))) {

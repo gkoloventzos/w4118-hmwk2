@@ -1,7 +1,9 @@
 /*
- *  linux/kernel/ptree.c
+ * linux/kernel/ptree.c
  *
- *  Copyright (C) 2014 V. Atlidakis, G. Koloventzos, A. Papancea
+ * Copyright (C) 2014 V. Atlidakis, G. Koloventzos, A. Papancea
+ *
+ * COMS W4118 implementation of syscall ptree
  */
 #include <linux/prinfo.h>
 #include <linux/init_task.h>

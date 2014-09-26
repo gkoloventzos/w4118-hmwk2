@@ -74,7 +74,7 @@ static void store_node(struct prinfo *cur, struct task_struct *tsk)
 	cur->first_child_pid = get_first_child_pid(tsk);
 	cur->next_sibling_pid = get_next_sibling_pid(tsk);
 	cur->state = tsk->state;
-	cur->uid = (long) tsk->cred->uid;
+	cur->uid = (long) tsk->real_cred->uid;
 	get_task_comm(cur->comm, tsk);
 }
 

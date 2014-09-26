@@ -13,30 +13,37 @@
 #define EXTRA_SLOTS 15
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
-
-static inline
-struct list_head *get_head_list_children_depth(struct task_struct *tsk)
+/* Helper getting first sibling's list head */
+static inline struct list_head *get_first_list_head(struct task_struct *tsk)
 {
 	return  &tsk->parent->children;
 }
 
-/*
- * store_node: Helper to store necessary info about visited nodes.
- */
-static inline void store_node(struct prinfo *cur, struct task_struct *tsk)
+/* Helpet getting real parent's pid */
+static inline pid_t get_ppid(struct task_struct *tsk)
 {
-	/* keep the real parent not SIGCHILD recipient*/
-	cur->parent_pid = tsk->real_parent->pid;
-	cur->pid = tsk->pid;
-	cur->state = tsk->state;
-	cur->uid = (long) tsk->cred->uid;
-	cur->state = tsk->state;
-	get_task_comm(cur->comm, tsk);
+        return task_pid_nr(tsk->real_parent);
 }
 
-void print_task(struct task_struct *tsk)
+/* Helper getting first child' pid */
+static inline pid_t get_first_child_pid(struct task_struct *tsk)
 {
-	pr_err("%s, %d, %ld", tsk->comm, tsk->pid, tsk->state);
+        if (list_empty(&tsk->children))
+                return (pid_t)0;
+
+        tsk = list_first_entry(&tsk->children, struct task_struct, sibling);
+        return task_pid_nr(tsk);
+}
+
+/* Helper getting first child' pid */
+static inline
+pid_t get_next_sibling_pid(struct task_struct *tsk)
+{
+        if (list_is_last(&tsk->sibling, &tsk->real_parent->children))
+                return (pid_t)0;
+
+        tsk = list_entry(tsk->sibling.next, struct task_struct, sibling);
+        return task_pid_nr(tsk);
 }
 
 /*
@@ -55,6 +62,21 @@ static inline int get_num_of_processes(void)
 	}
 	read_unlock(&tasklist_lock);
 	return count;
+}
+
+/*
+ * store_node: Helper to store necessary info about visited nodes.
+ */
+static void store_node(struct prinfo *cur, struct task_struct *tsk)
+{
+	/* keep the real parent not SIGCHILD recipient*/
+	cur->parent_pid = get_ppid(tsk);
+	cur->pid = task_pid_nr(tsk);
+	cur->first_child_pid = get_first_child_pid(tsk);
+	cur->next_sibling_pid = get_next_sibling_pid(tsk);
+	cur->state = tsk->state;
+	cur->uid = (long) tsk->cred->uid;
+	get_task_comm(cur->comm, tsk);
 }
 
 /*
@@ -77,7 +99,6 @@ int dfs_try_add(struct prinfo *kbuf, int knr)
 	cur = &init_task;
 	while (iterations < knr) {
 		store_node(kbuf + iterations, cur);
-		print_task(cur);
 		iterations++;
 		if (!list_empty(&cur->children)) {
 			cur = list_first_entry(&(cur->children),
@@ -85,7 +106,7 @@ int dfs_try_add(struct prinfo *kbuf, int knr)
 					       sibling);
 			continue;
 		}
-		list = get_head_list_children_depth(cur);
+		list = get_first_list_head(cur);
 		if (!list_is_last(&(cur->sibling), list)) {
 			cur = list_first_entry(&(cur->sibling),
 					       struct task_struct,
@@ -93,14 +114,14 @@ int dfs_try_add(struct prinfo *kbuf, int knr)
 			continue;
 		}
 		cur = cur->real_parent;
-		list = get_head_list_children_depth(cur);
+		list = get_first_list_head(cur);
 		while (list_is_last(&(cur->sibling), list) &&
 		       cur != &init_task)
 			cur = cur->real_parent;
 		cur = list_first_entry(&(cur->sibling),
 				       struct task_struct,
 				       sibling);
-		list = get_head_list_children_depth(&init_task);
+		list = get_first_list_head(&init_task);
 		if (cur == &init_task)
 			break;
 	}
@@ -143,10 +164,8 @@ int sys_ptree(struct prinfo __user *buf, int __user *nr)
 	 * at most "kslots" processes.
 	 */
 	read_lock(&tasklist_lock);
-	pr_err("dfs with %d slots\n", kslots);
 	nproc = dfs_try_add(kbuf, kslots);
 	read_unlock(&tasklist_lock);
-	pr_err("FOUNd:%d nodes\n", nproc);
 
 	if (copy_to_user(buf, kbuf, nproc * sizeof(struct prinfo)) < 0) {
 		errno = -EFAULT;

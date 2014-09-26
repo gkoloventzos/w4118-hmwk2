@@ -19,7 +19,7 @@ static inline struct list_head *get_first_list_head(struct task_struct *tsk)
 	return  &tsk->parent->children;
 }
 
-/* Helpet getting real parent's pid */
+/* Helper getting real parent's pid - not SIGCHLD recipient*/
 static inline pid_t get_ppid(struct task_struct *tsk)
 {
 	return task_pid_nr(tsk->real_parent);
@@ -69,7 +69,6 @@ static inline int get_num_of_processes(void)
  */
 static void store_node(struct prinfo *cur, struct task_struct *tsk)
 {
-	/* keep the real parent not SIGCHILD recipient*/
 	cur->parent_pid = get_ppid(tsk);
 	cur->pid = task_pid_nr(tsk);
 	cur->first_child_pid = get_first_child_pid(tsk);

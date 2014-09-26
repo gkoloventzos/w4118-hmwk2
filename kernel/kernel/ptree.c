@@ -14,15 +14,21 @@
 //static void dfs(struct prinfo *, struct task_struct *, int *, int *);
 //static void full_prinfo(struct prinfo *, struct task_struct *);
 //static void print_task(struct task_struct *);
+static inline struct list_head *get_head_list_children_depth(\
+						struct task_struct * tsk)
+{
+	return &(tsk->parent->children);
+}
 
 
-asmlinkage int sys_ptree(struct prinfo *buf, int *nr)
+
+int sys_ptree(struct prinfo *buf, int *nr)
 {
 	int errno;
 	struct task_struct *cur, *pinit;
 	struct prinfo *kbuf;
         int iterations, store;
-//	struct list_head *list;
+	struct list_head *list;
 
 	if (buf == NULL || nr == NULL) {
 		errno = -EINVAL;
@@ -48,7 +54,6 @@ asmlinkage int sys_ptree(struct prinfo *buf, int *nr)
 			break; /*More iterations than processes*/
 		
         	printk(KERN_ERR "%p %p %p %d\n", &init_task, cur, pinit, iterations);
-        	printk(KERN_ERR "iter: %d\n", iterations);
 		//print_task(ega_task);
 		//cur = ega_task;
 		//full_prinfo(kbuf + iterations, cur);
@@ -59,24 +64,27 @@ asmlinkage int sys_ptree(struct prinfo *buf, int *nr)
         		printk(KERN_ERR "not empty children list");
 			cur = list_first_entry(&(cur->children), struct task_struct,\
 						sibling);
-       	 		printk(KERN_ERR "1Here: <%ld>\n", (long)cur->pid);
+       	 		printk(KERN_ERR "1: <%ld>\n", (long)cur->pid);
 			continue;
 		}
-		
-		if (!list_empty(&cur->sibling)) {
+		list = get_head_list_children_depth(cur);
+		if (!list_is_last(&(cur->sibling), list)) {
         		printk(KERN_ERR "not empty sibling list");
 			cur = list_first_entry(&(cur->sibling), struct task_struct,\
 						sibling);
-       	 		printk(KERN_ERR "2Here: <%ld>\n", (long)cur->pid);
+       	 		printk(KERN_ERR "2: <%ld>\n", (long)cur->pid);
 			continue;
 		}
 		printk(KERN_ERR "both lists empty look to your father"); 
 		cur = cur->real_parent;
-		while (list_empty(&cur->sibling) && cur != pinit){
+		list = get_head_list_children_depth(cur);
+			printk(KERN_ERR "before loop: <%ld>\n", (long)cur->pid);
+		while (cur != pinit && !list_is_last(&(cur->sibling), list)){
 			cur = cur->real_parent;
+			printk(KERN_ERR "loop: <%ld>\n", (long)cur->pid);
 		}
 		cur = list_first_entry(&(cur->sibling), struct task_struct, sibling);
-       	 		printk(KERN_ERR "3Here: <%ld>\n", (long)cur->pid);
+       	 		printk(KERN_ERR "3: <%ld>\n", (long)cur->pid);
 		
 	}
 	read_unlock(&tasklist_lock);

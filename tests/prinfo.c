@@ -50,13 +50,13 @@ int main(int argc, char **argv)
 	 */
 	print_process(buf[0], 0);
 	parent_pid = -1;
-	depth = 1;
-	for (i = 0; i != nproc; i++) {
+	depth = 0;
+	for (i = 1; i != nproc; i++) {
 		if (parent_pid == buf[i].parent_pid) {
 			print_process(buf[i], depth);
 			continue;
 		}
-		if (buf[i].parent_pid != buf[i - 1].pid) {
+		if (buf[i].parent_pid == buf[i - 1].pid) {
 			depth++;
 			parent_pid = buf[i].parent_pid;
 			print_process(buf[i], depth);

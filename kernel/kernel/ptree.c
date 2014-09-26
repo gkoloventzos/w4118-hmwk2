@@ -34,7 +34,7 @@ static inline void store_node(struct prinfo *cur, struct task_struct *tsk)
 
 void print_task(struct task_struct *tsk)
 {
-	pr_err(KERN_ERR "%s, %d, %ld", tsk->comm, tsk->pid, tsk->state);
+	pr_err("%s, %d, %ld", tsk->comm, tsk->pid, tsk->state);
 }
 
 /*
@@ -141,10 +141,10 @@ int sys_ptree(struct prinfo __user *buf, int __user *nr)
 	 * at most "kslots" processes.
 	 */
 	read_lock(&tasklist_lock);
-	pr_err(KERN_ERR "dfs with %d slots\n", kslots);
+	pr_err("dfs with %d slots\n", kslots);
 	nproc = dfs_try_add(kbuf, kslots);
 	read_unlock(&tasklist_lock);
-	pr_err(KERN_ERR "FOUNd:%d nodes\n", nproc);
+	pr_err("FOUNd:%d nodes\n", nproc);
 
 	if (copy_to_user(buf, kbuf, nproc * sizeof(struct prinfo)) < 0) {
 		errno = -EFAULT;

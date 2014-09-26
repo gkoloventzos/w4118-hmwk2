@@ -50,8 +50,11 @@ int sys_ptree(struct prinfo *buf, int *nr)
 	iterations = 0;
 	store = 1;
 	while (iterations < *nr) { 
-		if (cur == pinit && iterations > 1)
-			break; /*More iterations than processes*/
+/*		if (cur == pinit && iterations > 1){
+			cur = list_first_entry(&(cur->sibling), struct task_struct,sibling);
+			if (cur == NULL) 
+				break;
+		}*/
 		
         	printk(KERN_ERR "%p %p %p %d\n", &init_task, cur, pinit, iterations);
 		//print_task(ega_task);
@@ -79,12 +82,15 @@ int sys_ptree(struct prinfo *buf, int *nr)
 		cur = cur->real_parent;
 		list = get_head_list_children_depth(cur);
 			printk(KERN_ERR "before loop: <%ld>\n", (long)cur->pid);
-		while (cur != pinit && !list_is_last(&(cur->sibling), list)){
+		while (list_is_last(&(cur->sibling), list) && cur != &init_task){
 			cur = cur->real_parent;
 			printk(KERN_ERR "loop: <%ld>\n", (long)cur->pid);
 		}
 		cur = list_first_entry(&(cur->sibling), struct task_struct, sibling);
        	 		printk(KERN_ERR "3: <%ld>\n", (long)cur->pid);
+		list = get_head_list_children_depth(&init_task);
+		if (cur == &init_task)
+			break;
 		
 	}
 	read_unlock(&tasklist_lock);

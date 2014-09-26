@@ -12,17 +12,17 @@
 #include <asm-generic/errno-base.h>
 
 //static void dfs(struct prinfo *, struct task_struct *, int *, int *);
-static void full_prinfo(struct prinfo *, struct task_struct *);
-static void print_task(struct task_struct *);
+//static void full_prinfo(struct prinfo *, struct task_struct *);
+//static void print_task(struct task_struct *);
 
 
 asmlinkage int sys_ptree(struct prinfo *buf, int *nr)
 {
 	int errno;
-	struct task_struct *ega_task, *cur;
+	struct task_struct *cur, *pinit;
 	struct prinfo *kbuf;
         int iterations, store;
-	struct list_head *list;
+//	struct list_head *list;
 
 	if (buf == NULL || nr == NULL) {
 		errno = -EINVAL;
@@ -39,49 +39,58 @@ asmlinkage int sys_ptree(struct prinfo *buf, int *nr)
         }
         printk(KERN_ERR "Here I am: %d\n", *nr);
         read_lock(&tasklist_lock);
-	ega_task = &init_task;
+	cur = &init_task;
+	pinit = list_first_entry(&(cur->children), struct task_struct, sibling);
 	iterations = 0;
 	store = 1;
-	while (iterations <= *nr) { 
-		if (ega_task == &init_task && iterations != 0)
+	while (iterations < *nr) { 
+		if (cur == pinit && iterations > 1)
 			break; /*More iterations than processes*/
-		print_task(ega_task);
-		cur = ega_task;
-		full_prinfo(kbuf + iterations, cur);
+		
+        	printk(KERN_ERR "%p %p %p %d\n", &init_task, cur, pinit, iterations);
+        	printk(KERN_ERR "iter: %d\n", iterations);
+		//print_task(ega_task);
+		//cur = ega_task;
+		//full_prinfo(kbuf + iterations, cur);
 		iterations++;
+		if (!cur)	
+        		printk(KERN_ERR "MAOTHERFUCKER\n");
 		if (!list_empty(&cur->children)) {
         		printk(KERN_ERR "not empty children list");
-			list = &(cur->children);
-			ega_task = list_first_entry(list, struct task_struct,\
+			cur = list_first_entry(&(cur->children), struct task_struct,\
 						sibling);
-       	 		printk(KERN_ERR "Here: %s\n", ega_task->comm);
+       	 		printk(KERN_ERR "1Here: <%ld>\n", (long)cur->pid);
 			continue;
 		}
+		
 		if (!list_empty(&cur->sibling)) {
         		printk(KERN_ERR "not empty sibling list");
-			list = &(cur->sibling);
-			ega_task = list_first_entry(list, struct task_struct,\
+			cur = list_first_entry(&(cur->sibling), struct task_struct,\
 						sibling);
-       	 		printk(KERN_ERR "Here: %s\n", ega_task->comm);
+       	 		printk(KERN_ERR "2Here: <%ld>\n", (long)cur->pid);
 			continue;
 		}
 		printk(KERN_ERR "both lists empty look to your father"); 
 		cur = cur->real_parent;
-		while (list_empty(&cur->sibling) && cur != &init_task){
+		while (list_empty(&cur->sibling) && cur != pinit){
 			cur = cur->real_parent;
 		}
-		list = &(cur->sibling);
-		ega_task = list_first_entry(list, struct task_struct, sibling);
-		printk(KERN_ERR "Here: %s\n", ega_task->comm);
+		cur = list_first_entry(&(cur->sibling), struct task_struct, sibling);
+       	 		printk(KERN_ERR "3Here: <%ld>\n", (long)cur->pid);
+		
 	}
 	read_unlock(&tasklist_lock);
+       	printk(KERN_ERR "DId all iterations\n");
 	if (copy_to_user(buf, kbuf, *nr * sizeof(struct prinfo))) {
  		errno = -EFAULT;
 		goto error;
 	}
+       	printk(KERN_ERR "copied to user\n");
 	errno = 0;
         kfree(kbuf);
 error:
+	
+       	printk(KERN_ERR "exiting\n");
 	return errno;
 }
 
@@ -94,7 +103,6 @@ void full_prinfo(struct prinfo *cur, struct task_struct *tsk)
 	cur->state = tsk->state;
 	cur->uid = (long) tsk->cred->uid;
 	cur->state = tsk->state;
-	get_task_comm(cur->comm, tsk);
         /*                                                                      
          * cur->next_sibling_pid = tsk->p_ysptr; younger sibling                
          * cur->first_child_pid = tsk->p_cptr; youngest child                   

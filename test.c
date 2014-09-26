@@ -13,13 +13,13 @@ struct prinfo {
 
 int main(char *argsv, int argsc)
 {
-	struct prinfo p[4];
-	int nr = 4;
+	struct prinfo p[30];
+	int nr = 30;
 	int i;
 
 	syscall(223, &p, &nr);
 
-	for (i=0;i<4;i++)
+	for (i=0;i<30;i++)
 		printf("%s,%d,%ld,%d,%d,%d,%d\n", p[i].comm, p[i].pid, p[i].state,\
 				p[i].parent_pid, p[i].first_child_pid, p[i].next_sibling_pid, p[i].uid);
 

@@ -22,28 +22,28 @@ static inline struct list_head *get_first_list_head(struct task_struct *tsk)
 /* Helpet getting real parent's pid */
 static inline pid_t get_ppid(struct task_struct *tsk)
 {
-        return task_pid_nr(tsk->real_parent);
+	return task_pid_nr(tsk->real_parent);
 }
 
 /* Helper getting first child' pid */
 static inline pid_t get_first_child_pid(struct task_struct *tsk)
 {
-        if (list_empty(&tsk->children))
-                return (pid_t)0;
+	if (list_empty(&tsk->children))
+		return (pid_t)0;
 
-        tsk = list_first_entry(&tsk->children, struct task_struct, sibling);
-        return task_pid_nr(tsk);
+	tsk = list_first_entry(&tsk->children, struct task_struct, sibling);
+	return task_pid_nr(tsk);
 }
 
 /* Helper getting first child' pid */
 static inline
 pid_t get_next_sibling_pid(struct task_struct *tsk)
 {
-        if (list_is_last(&tsk->sibling, &tsk->real_parent->children))
-                return (pid_t)0;
+	if (list_is_last(&tsk->sibling, &tsk->real_parent->children))
+		return (pid_t)0;
 
-        tsk = list_entry(tsk->sibling.next, struct task_struct, sibling);
-        return task_pid_nr(tsk);
+	tsk = list_entry(tsk->sibling.next, struct task_struct, sibling);
+	return task_pid_nr(tsk);
 }
 
 /*
@@ -80,7 +80,7 @@ static void store_node(struct prinfo *cur, struct task_struct *tsk)
 }
 
 /*
- * dfs_try_add: Traverse task_struct tree in dfs fashion and maybe store info
+ * dfs_try_add: Traverse task_struct tree in dfs fashion and store info
  *              about visited nodes in buf.
  * @kbuf: Buffer to store info about visited nodes.
  * @nr: Maximum number of nodes to store
@@ -89,7 +89,7 @@ static void store_node(struct prinfo *cur, struct task_struct *tsk)
  *
  * WARNING: The caller must hold task_list lock.
  */
-int dfs_try_add(struct prinfo *kbuf, int knr)
+int dfs_add(struct prinfo *kbuf, int knr)
 {
 	int iterations;
 	struct list_head *list;
@@ -164,7 +164,7 @@ int sys_ptree(struct prinfo __user *buf, int __user *nr)
 	 * at most "kslots" processes.
 	 */
 	read_lock(&tasklist_lock);
-	nproc = dfs_try_add(kbuf, kslots);
+	nproc = dfs_add(kbuf, kslots);
 	read_unlock(&tasklist_lock);
 
 	if (copy_to_user(buf, kbuf, nproc * sizeof(struct prinfo)) < 0) {

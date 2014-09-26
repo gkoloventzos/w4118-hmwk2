@@ -1,0 +1,27 @@
+a.) If we run our test program  --without rebooting the emulator-- the
+following apply with respect to each field of prinfo struct.
+        -ppid:vMay change if parent process exits and current process
+               becomes an orphan and get adopted by init.
+        -pid: Remains unchanged for the life-time of a process
+        -youngest_child_pid: May change if current process forks a new child
+                             or the youngest child exits.
+        -next_sibling: May change if current process is the youngest child
+                       of its parent and the parent fork a new child [1]. Also,
+                       may change if current sibling exits.
+        -state: Changes whenever the state of the current process changes.
+                For instance for stopped into runnnable.
+        -uid: Cannot change, since we are using real_cread which is not
+              overridable [2].
+        -comm:
+
+b.)
+
+
+c.)
+
+
+
+[1] Note that fork invokes list_Add_tail and thus the last child
+is the youngest.
+
+[2] kernel/include/linux/sched.h +1409

@@ -99,12 +99,14 @@ int dfs_add(struct prinfo *kbuf, int knr)
 	while (iterations < knr) {
 		store_node(kbuf + iterations, cur);
 		iterations++;
+		/* If you have children visit them first */
 		if (!list_empty(&cur->children)) {
 			cur = list_first_entry(&(cur->children),
 					       struct task_struct,
 					       sibling);
 			continue;
 		}
+		/* If you do not have children visit your next sibling */
 		list = get_first_list_head(cur);
 		if (!list_is_last(&(cur->sibling), list)) {
 			cur = list_first_entry(&(cur->sibling),
@@ -112,6 +114,10 @@ int dfs_add(struct prinfo *kbuf, int knr)
 					       sibling);
 			continue;
 		}
+		/*
+		 * If you neither have children nor siblings iterate up to
+		 * your father until you find siblings or init_task.
+		 */
 		cur = cur->real_parent;
 		list = get_first_list_head(cur);
 		while (list_is_last(&(cur->sibling), list) &&

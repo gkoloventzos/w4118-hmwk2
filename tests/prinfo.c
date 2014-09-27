@@ -32,40 +32,40 @@ int main(int argc, char **argv)
 		printf("Usage:%s  <number of processes>\n", argv[0]);
 		goto error;
 	}
+
 	nproc = atoi(argv[1]);
-	if (argv[1] < 0) {
+	if (nproc < 0) {
 		printf("Number of processes cannot be negative\n");
 		goto error;
 	}
+
 	buf = calloc(nproc, sizeof(struct prinfo));
 	if (buf == NULL) {
 		perror("calloc:");
 		goto error;
 	}
+
 	rval = syscall(223, buf, &nproc);
 	if (rval < 0) {
 		perror("ptree:");
 		goto error_free_mem;
 	}
-	/*
-	 * Your system call should return the total number of entries on
-	 * success (this may be bigger than the actual number of entries copied)
-	 * seg fault?
-	 */
+	/* Printing the init_task */
 	print_process(buf[0], 0);
 	parent_pid = -1;
 	depth = 0;
-	/* Printing the init_task */
 	for (i = 1; i != nproc; i++) {
-		/* If you have the same parent with previous process in array*/
+		/*
+         * If you have the same parent with the previous
+         * process keep the same identation depth.
+         */
 		if (parent_pid == buf[i].parent_pid) {
 			print_process(buf[i], depth);
 			continue;
 		}
 		/*
-		 * If your parent id is the same with the pid of the previous
-		 * process this means that you are child of this process as
-		 * this is a dfs structured array.
+		 * If the previous process is your parent
+         * increase identation level.
 		 */
 		if (buf[i].parent_pid == buf[i - 1].pid) {
 			depth++;
@@ -74,8 +74,8 @@ int main(int argc, char **argv)
 			continue;
 		}
 		/*
-		 * If your parent id is not the same with the previous then it
-		 * means that you are a sibling of the previous process
+		 * If none of the above applies, then you are
+         * a sibling of the previous process's parent.
 		 */
 		--depth;
 		parent_pid = buf[i].parent_pid;

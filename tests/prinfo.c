@@ -33,12 +33,16 @@ int main(int argc, char **argv)
 		goto error;
 	}
 	nproc = atoi(argv[1]);
+	if (argv[1] < 0) {
+		printf("Number of processes cannot be negative\n");
+		goto error;
+	}
 	buf = calloc(nproc, sizeof(struct prinfo));
 	if (buf == NULL) {
 		perror("calloc:");
-		 goto error;
+		goto error;
 	}
-	 rval = syscall(223, buf, &nproc);
+	rval = syscall(223, buf, &nproc);
 	if (rval < 0) {
 		perror("ptree:");
 		goto error_free_mem;
@@ -83,5 +87,4 @@ error_free_mem:
 error:
 	return -1;
 }
-
 

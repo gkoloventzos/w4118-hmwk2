@@ -12,17 +12,40 @@ a.) If we run our test program  --without rebooting the emulator-- the
                 For instance for stopped into runnnable.
         -uid: Cannot change, since we are using real_cread which is not
               overridable [2].
-        -comm:
+        -comm: Can change using the prctl() system call (see exercise c. ii)
 
 b.) When the web browser is started only one new process is started, which is
 	'android.browser'. Its parent process is 'zygote'. When you press the
 	"Home" button, no process is destroyed because the "Home" button does not
 	kill the current running process, but makes it run in the background.
 
-c.)
+c.) i. Zygote is meant to boot up Android applications [3].
+	ii. Zygote is found in the Android source code and not in the kernel, which
+		is why we cannot find it in the hw repo. It is started by the
+		'app_process' binary and the name 'zygote' is set in the same binary
+		(see line 292 "set_process_name(niceName);") [3]. The set_process_name
+		high-level function uses the prctl() system call in order to modify
+		the name [4].
+	iii. Zygote runs a VM and whenever a new application is about to start
+		the VM is duplicated using fork() (lines 53-60 [5]). Zygote optimizes
+		memory usage by sharing the core libraries accros child processes
+		instead of copying them over for each fork()ed child (lines 84-95
+		and 338-339 [5]). This is the reason why an embedded system would run
+		a process like zygote, the fact that it minimizes memory usage for
+		heavily used libraries.
 
+Resources:
 
 [1] Note that fork invokes list_Add_tail and thus the last child
-is the youngest.
+	is the youngest.
 
 [2] kernel/include/linux/sched.h +1409
+
+[3] https://github.com/android/
+		platform_frameworks_base/blob/master/cmds/app_process/app_main.cpp
+
+[4] https://github.com/android/
+		platform_system_core/blob/master/libcutils/process_name.c
+
+[5] https://android.googlesource.com/platform/frameworks/
+		base.git/+/master/core/java/com/android/internal/os/ZygoteInit.java

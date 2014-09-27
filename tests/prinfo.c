@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 	struct prinfo *buf;
 
 	if (argc != 2) {
-		printf("Usage:%s  <number of processes\n>", argv[0]);
+		printf("Usage:%s  <number of processes>\n", argv[0]);
 		goto error;
 	}
 	nproc = atoi(argv[1]);
@@ -44,8 +44,8 @@ int main(int argc, char **argv)
 		goto error_free_mem;
 	}
 	/*
-	 *Your system call should return the total number of entries on
-	 *success (this may be bigger than the actual number of entries copied)
+	 * Your system call should return the total number of entries on
+	 * success (this may be bigger than the actual number of entries copied)
 	 * seg fault?
 	 */
 	print_process(buf[0], 0);

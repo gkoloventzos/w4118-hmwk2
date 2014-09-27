@@ -1,6 +1,6 @@
 a.) If we run our test program  --without rebooting the emulator-- the
-following apply with respect to each field of prinfo struct.
-        -ppid:vMay change if parent process exits and current process
+	following apply with respect to each field of prinfo struct.
+        -ppid: May change if parent process exits and current process
                becomes an orphan and get adopted by init.
         -pid: Remains unchanged for the life-time of a process
         -youngest_child_pid: May change if current process forks a new child
@@ -14,11 +14,12 @@ following apply with respect to each field of prinfo struct.
               overridable [2].
         -comm:
 
-b.)
-
+b.) When the web browser is started only one new process is started, which is
+	'android.browser'. Its parent process is 'zygote'. When you press the
+	"Home" button, no process is destroyed because the "Home" button does not
+	kill the current running process, but makes it run in the background.
 
 c.)
-
 
 
 [1] Note that fork invokes list_Add_tail and thus the last child

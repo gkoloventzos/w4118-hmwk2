@@ -82,13 +82,13 @@ static void store_node(struct prinfo *cur, struct task_struct *tsk)
  * dfs_try_add: Traverse task_struct tree in dfs fashion and store info
  *              about visited nodes in buf.
  * @kbuf: Buffer to store info about visited nodes.
- * @nr: Maximum number of nodes to store
+ * @nr: Number of total nodes actually stored
  *
- * Returns the actuall number of nodes stored in kbuf or an error.
+ * Returns the total number of proc in the system
  *
  * WARNING: The caller must hold task_list lock.
  */
-int dfs_add(struct prinfo *kbuf, int knr)
+int dfs_add(struct prinfo *kbuf, int *knr)
 {
 	int iterations;
 	struct list_head *list;
@@ -96,8 +96,9 @@ int dfs_add(struct prinfo *kbuf, int knr)
 
 	iterations = 0;
 	cur = &init_task;
-	while (iterations < knr) {
-		store_node(kbuf + iterations, cur);
+	while (1) {
+        if (iterations < *knr)
+		    store_node(kbuf + iterations, cur);
 		iterations++;
 		/* If you have children visit them first */
 		if (!list_empty(&cur->children)) {
@@ -130,9 +131,19 @@ int dfs_add(struct prinfo *kbuf, int knr)
 		if (cur == &init_task)
 			break;
 	}
+    if (*knr > iterations)
+        *knr = iterations;
 	return iterations;
 }
-
+/* syscall: ptree
+ * @buf: User space buffer allocated by the user
+ * @nr: Maximum number of processes to copy in buffer.
+ *      At the end it contains the total number of entries
+ *      actually copied.
+ *
+ * Return negative value on error; the total number of procs
+ * in the system when task_struct tree was traversed.
+ */
 int sys_ptree(struct prinfo __user *buf, int __user *nr)
 {
 	int knr;
@@ -149,6 +160,10 @@ int sys_ptree(struct prinfo __user *buf, int __user *nr)
 		errno = -EFAULT;
 		goto error;
 	}
+    if (knr < 1) {
+        errno = -EINVAL;
+        goto error;
+    }
 	/*
 	 * Check the total number of processes in the system and
 	 * allocate min(nproc + EXTRA_SLOTS, nr). In that way if
@@ -169,14 +184,14 @@ int sys_ptree(struct prinfo __user *buf, int __user *nr)
 	 * at most "kslots" processes.
 	 */
 	read_lock(&tasklist_lock);
-	nproc = dfs_add(kbuf, kslots);
+	nproc = dfs_add(kbuf, &kslots);
 	read_unlock(&tasklist_lock);
 
-	if (copy_to_user(buf, kbuf, nproc * sizeof(struct prinfo)) < 0) {
+	if (copy_to_user(buf, kbuf, kslots * sizeof(struct prinfo)) < 0) {
 		errno = -EFAULT;
 		goto fail_free_mem;
 	}
-	if (put_user(nproc, nr) < 0) {
+	if (put_user(kslots, nr) < 0) {
 		errno = -EFAULT;
 		goto fail_free_mem;
 	}

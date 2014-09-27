@@ -51,17 +51,28 @@ int main(int argc, char **argv)
 	print_process(buf[0], 0);
 	parent_pid = -1;
 	depth = 0;
+	/* Printing the init_task */
 	for (i = 1; i != nproc; i++) {
+		/* If you have the same parent with previous process in array*/
 		if (parent_pid == buf[i].parent_pid) {
 			print_process(buf[i], depth);
 			continue;
 		}
+		/*
+		 * If your parent id is the same with the pid of the previous
+		 * process this means that you are child of this process as
+		 * this is a dfs structured array.
+		 */
 		if (buf[i].parent_pid == buf[i - 1].pid) {
 			depth++;
 			parent_pid = buf[i].parent_pid;
 			print_process(buf[i], depth);
 			continue;
 		}
+		/*
+		 * If your parent id is not the same with the previous then it
+		 * means that you are a sibling of the previous process
+		 */
 		--depth;
 		parent_pid = buf[i].parent_pid;
 		print_process(buf[i], depth);

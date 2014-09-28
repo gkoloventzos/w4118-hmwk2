@@ -25,13 +25,13 @@ static inline pid_t get_ppid(struct task_struct *tsk)
 	return task_pid_nr(tsk->real_parent);
 }
 
-/* Helper getting first child' pid */
-static inline pid_t get_first_child_pid(struct task_struct *tsk)
+/* Helper getting youngest child's pid */
+static inline pid_t get_youngest_child_pid(struct task_struct *tsk)
 {
 	if (list_empty(&tsk->children))
 		return (pid_t)0;
 
-	tsk = list_first_entry(&tsk->children, struct task_struct, sibling);
+	tsk = list_entry(tsk->children.prev, struct task_struct, sibling);
 	return task_pid_nr(tsk);
 }
 
@@ -71,7 +71,7 @@ static void store_node(struct prinfo *cur, struct task_struct *tsk)
 {
 	cur->parent_pid = get_ppid(tsk);
 	cur->pid = task_pid_nr(tsk);
-	cur->first_child_pid = get_first_child_pid(tsk);
+	cur->first_child_pid = get_youngest_child_pid(tsk);
 	cur->next_sibling_pid = get_next_sibling_pid(tsk);
 	cur->state = tsk->state;
 	cur->uid = (long) tsk->real_cred->uid;

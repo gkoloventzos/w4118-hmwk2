@@ -3,7 +3,7 @@ LD := arm-none-linux-gnueabi-gcc
 CFLAGS := -g -Wall -Werror -static
 LDFLAGS := -static
 
-OBJECTS := prinfo.o
+OBJECTS := prinfo.o list.o
 
 all: prinfo
 

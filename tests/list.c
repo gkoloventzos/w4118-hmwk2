@@ -45,15 +45,12 @@ int prepend(struct node **head, pid_t data)
 
 	new_node->parent_id = data;
 	new_node->next = NULL;
-fprintf(stderr,"we get the space\n");
 	if (*head != NULL) {
-fprintf(stderr,"we put no null\n");
 		new_node->next = *head;
 		*head = new_node;
-	} else{
-fprintf(stderr,"we put null\n");
+	} else {
 		*head = new_node;
-}
+	}
 	return 0;
 }
 

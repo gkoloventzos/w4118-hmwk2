@@ -1,5 +1,7 @@
 /*
  * linux/kernel/ptree.c
+ * A system call that returns the process tree
+ * information in a depth-first-search (DFS) order.
  *
  * Copyright (C) 2014 V. Atlidakis, G. Koloventzos, A. Papancea
  *
@@ -97,8 +99,8 @@ int dfs_add(struct prinfo *kbuf, int *knr)
 	iterations = 0;
 	cur = &init_task;
 	while (1) {
-        if (iterations < *knr)
-		    store_node(kbuf + iterations, cur);
+		if (iterations < *knr)
+			store_node(kbuf + iterations, cur);
 		iterations++;
 		/* If you have children visit them first */
 		if (!list_empty(&cur->children)) {
@@ -131,10 +133,11 @@ int dfs_add(struct prinfo *kbuf, int *knr)
 		if (cur == &init_task)
 			break;
 	}
-    if (*knr > iterations)
-        *knr = iterations;
+	/* knr holds the number of nodes actually stored */
+	*knr = iterations < *knr ? iterations : *knr;
 	return iterations;
 }
+
 /* syscall: ptree
  * @buf: User space buffer allocated by the user
  * @nr: Maximum number of processes to copy in buffer.
@@ -147,6 +150,7 @@ int dfs_add(struct prinfo *kbuf, int *knr)
 int sys_ptree(struct prinfo __user *buf, int __user *nr)
 {
 	int knr;
+	int rval;
 	int nproc;
 	int kslots;
 	int errno;
@@ -156,14 +160,16 @@ int sys_ptree(struct prinfo __user *buf, int __user *nr)
 		errno = -EINVAL;
 		goto error;
 	}
-	if (get_user(knr, nr) < 0) {
+
+	rval = get_user(knr, nr);
+	if (rval < 0) {
 		errno = -EFAULT;
 		goto error;
 	}
-    if (knr < 1) {
-        errno = -EINVAL;
-        goto error;
-    }
+	if (knr < 1) {
+		errno = -EINVAL;
+		goto error;
+	}
 	/*
 	 * Check the total number of processes in the system and
 	 * allocate min(nproc + EXTRA_SLOTS, nr). In that way if
@@ -187,7 +193,8 @@ int sys_ptree(struct prinfo __user *buf, int __user *nr)
 	nproc = dfs_add(kbuf, &kslots);
 	read_unlock(&tasklist_lock);
 
-	if (copy_to_user(buf, kbuf, kslots * sizeof(struct prinfo)) < 0) {
+	rval = copy_to_user(buf, kbuf, kslots * sizeof(struct prinfo));
+	if (rval < 0) {
 		errno = -EFAULT;
 		goto fail_free_mem;
 	}
@@ -195,7 +202,9 @@ int sys_ptree(struct prinfo __user *buf, int __user *nr)
 		errno = -EFAULT;
 		goto fail_free_mem;
 	}
+
 	errno = nproc;
+
 fail_free_mem:
 	kfree(kbuf);
 error:

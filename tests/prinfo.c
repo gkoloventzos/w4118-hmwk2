@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include "prinfo.h"
+#include "list.h"
 
 /*
  * Helper function to print process info add necessary tabs.
@@ -27,6 +28,7 @@ int main(int argc, char **argv)
 	int depth;
 	pid_t parent_pid;
 	struct prinfo *buf;
+	struct node **head;
 
 	if (argc != 2) {
 		printf("Usage:%s  <number of processes>\n", argv[0]);
@@ -69,6 +71,7 @@ int main(int argc, char **argv)
 		 */
 		if (buf[i].parent_pid == buf[i - 1].pid) {
 			depth++;
+			prepend(&head,(pid_t) buf[i].parent_pid);
 			parent_pid = buf[i].parent_pid;
 			print_process(buf[i], depth);
 			continue;
@@ -78,6 +81,10 @@ int main(int argc, char **argv)
          * a sibling of the previous process's parent.
 		 */
 		--depth;
+		while (buf[i].parent_pid != get_data_from_start(&head)) {
+			--depth;
+			remove_from_start(&head);	
+		}
 		parent_pid = buf[i].parent_pid;
 		print_process(buf[i], depth);
 	}

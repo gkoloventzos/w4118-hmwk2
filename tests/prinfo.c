@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 		--depth;
 		while (buf[i].parent_pid != get_data_from_start(&head)) {
 			--depth;
-			remove_from_start(&head);	
+			remove_from_start(&head);
 		}
 		parent_pid = buf[i].parent_pid;
 		print_process(buf[i], depth);

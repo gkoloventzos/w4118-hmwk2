@@ -42,7 +42,7 @@ int prepend_node(struct node **head, pid_t data)
 	new_node = malloc(sizeof(struct node));
 	if (new_node == NULL)
 		return -1;
-	
+
 	new_node->parent_id = data;
 	new_node->next = NULL;
 fprintf(stderr,"we get the space\n");

@@ -34,14 +34,14 @@ void free_all_nodes(struct node **head)
 	}
 }
 
-int prepend_node(struct node **head, pid_t data)
+int prepend(struct node **head, pid_t data)
 {
 	struct node *new_node;
 
 	/* Create a new node */
 	new_node = malloc(sizeof(struct node));
 	if (new_node == NULL)
-		return -1;
+		return 1;
 
 	new_node->parent_id = data;
 	new_node->next = NULL;

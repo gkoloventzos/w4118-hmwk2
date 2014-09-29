@@ -13,6 +13,5 @@ void free_node(struct node *n);
 void free_all_nodes(struct node **head);
 int prepend(struct node **head, pid_t data);
 pid_t get_data_from_start(struct node **head);
-void print(struct node *head);
 
 #endif

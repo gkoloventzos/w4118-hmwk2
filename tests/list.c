@@ -60,11 +60,3 @@ pid_t get_data_from_start(struct node **head)
 		return (*head)->parent_id;
 	return (pid_t)0;
 }
-
-void print(struct node *list)
-{ while (list != NULL) {       /* Visit list elements up to the end */
-    printf("%ld--> ", (long)list->parent_id);         /* Print current element */
-    list = list->next;                        /* Go to next element */
-  }
-  printf("NULL\n");                            /* Print end of list */
-}

@@ -51,16 +51,16 @@ pid_t get_next_sibling_pid(struct task_struct *tsk)
 /*
  * get_num_of_processes: Helper to get the number of processes
  * currently running in the system.
+ *
+ * WARNING: caller must hold task_list lock
  */
 static inline int get_num_of_processes(void)
 {
 	int count = 0;
 	struct task_struct *cur;
 
-	read_lock(&tasklist_lock);
 	for_each_process(cur)
 		++count;
-	read_unlock(&tasklist_lock);
 	return count;
 }
 

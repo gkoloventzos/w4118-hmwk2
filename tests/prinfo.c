@@ -28,7 +28,7 @@ int add_depth(pid_t parent, pid_t pid, struct node **head)
 	int rlist;
 
 	if (parent == pid) {
-		rlist = prepend(head,(pid_t) parent);
+		rlist = prepend(head, (pid_t) parent);
 		return rlist;
 	}
 	return 2;
@@ -85,9 +85,8 @@ int main(int argc, char **argv)
 		 * increase identation level.
 		 */
 		rlist = add_depth(buf[i].parent_pid, buf[i - 1].pid, &head);
-		if (rlist == 1) {
+		if (rlist == 1)
 			goto error_list;
-		}
 		if (rlist == 0) {
 			depth++;
 			parent_pid = buf[i].parent_pid;

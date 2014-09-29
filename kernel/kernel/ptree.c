@@ -49,8 +49,8 @@ pid_t get_next_sibling_pid(struct task_struct *tsk)
 }
 
 /*
- * get_num_of_processes: Helper to get the number of processes, i.e.,
- * thread group leaders in the task_struct list.
+ * get_num_of_processes: Helper to get the number of processes
+ * currently running in the system.
  */
 static inline int get_num_of_processes(void)
 {
@@ -58,10 +58,8 @@ static inline int get_num_of_processes(void)
 	struct task_struct *cur;
 
 	read_lock(&tasklist_lock);
-	for_each_process(cur) {
-		if (cur == cur->group_leader)
-			++count;
-	}
+	for_each_process(cur)
+		++count;
 	read_unlock(&tasklist_lock);
 	return count;
 }

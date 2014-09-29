@@ -26,9 +26,9 @@ c.) i. Zygote is meant to boot up Android applications [3].
 		(see line 292 "set_process_name(niceName);") [3]. The set_process_name
 		high-level function uses the prctl() system call in order to modify
 		the name [4].
-	iii. Zygote runs a VM and whenever a new application is about to start
+	iii. Zygote runs a VM and whenever a new application is about to start,
 		the VM is duplicated using fork() (lines 53-60 [5]). Zygote optimizes
-		memory usage by sharing the core libraries accros child processes
+		memory usage by sharing the core libraries across child processes
 		instead of copying them over for each fork()ed child (lines 84-95
 		and 338-339 [5]). This is the reason why an embedded system would run
 		a process like zygote, the fact that it minimizes memory usage for

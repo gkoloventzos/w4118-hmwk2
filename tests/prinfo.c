@@ -5,6 +5,8 @@
 #include "prinfo.h"
 #include "list.h"
 
+#define MAX_ITER 15
+
 /*
  * Helper function to print process info add necessary tabs.
  */
@@ -45,28 +47,40 @@ int main(int argc, char **argv)
 	struct prinfo *buf;
 	struct node *head;
 
-	if (argc != 2) {
-		printf("Usage:%s  <number of processes>\n", argv[0]);
+	if (argc != 1) {
+		printf("Usage:%s\n", argv[0]);
 		goto error;
 	}
-
-	nproc = atoi(argv[1]);
-	if (nproc < 0) {
-		printf("Number of processes cannot be negative\n");
-		goto error;
-	}
-
-	buf = calloc(nproc, sizeof(struct prinfo));
-	if (buf == NULL) {
-		perror("calloc:");
-		goto error;
-	}
-
-	rval = syscall(223, buf, &nproc);
-	if (rval < 0) {
-		perror("ptree:");
-		goto error_free_mem;
-	}
+        
+        /*
+         * Run this loop as many times as necessary in order
+         * to allocate a big enough buffer to cover info
+         * for the entire process tree.
+         */
+        for (i = 0, nproc = 1; i < MAX_ITER; i++) {
+        	buf = calloc(nproc, sizeof(struct prinfo));
+        	if (buf == NULL) {
+        		perror("calloc:");
+        		goto error;
+        	}
+                printf("Allocated a buffer of size: %d\n", nproc);
+        	rval = syscall(223, buf, &nproc);
+        	if (rval < 0) {
+        		perror("ptree:");
+        		goto error_free_mem;
+        	}
+                printf("Total number of processes running: %d\n", rval);
+                if (rval <= nproc)
+                        break;
+                printf("Reallocating a larger buffer\n\n");
+                free(buf);
+                nproc <<= 1;
+        }
+        /* If we get here it means that the size
+         * of buf was large enough to keep info
+         * about the whole process tree.
+         */
+        printf("\n\n");
 	/* Printing the init_task */
 	print_process(buf[0], 0);
 	parent_pid = -1;

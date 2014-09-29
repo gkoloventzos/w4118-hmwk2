@@ -1,21 +1,19 @@
 CC := arm-none-linux-gnueabi-gcc
 LD := arm-none-linux-gnueabi-gcc
-CFLAGS := -g -Wall -Werror -static
+CFLAGS := -g -Wall -Werror
 LDFLAGS := -static
 
 OBJECTS := prinfo.o list.o
+EXE := test_ptree
 
-all: prinfo
-
-
-: $(OBJECTS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJECTS)
+all : $(OBJECTS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $(EXE) $(OBJECTS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $^
 
 clean:
-	rm -f prinfo
-	rm -f prinfo.o
+	rm -f $(OBJECTS)
+	rm -f $(EXE)
 
 .PHONY: clean

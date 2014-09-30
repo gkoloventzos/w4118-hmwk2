@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 		printf("Total number of processes running: %d\n", rval);
 		if (rval <= nproc)
 			break;
-		printf("Reallocating a larger buffer\n\n");
+		printf("Re-allocating a larger buffer\n\n");
 		free(buf);
 		nproc <<= 1;
 	}

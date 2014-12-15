@@ -2,6 +2,8 @@ Implementations of a DFS proc tree info utility for Android.
 ==
 Copyright (C) 2014 V. Atlidakis, G. Koloventzos, A. Papancea
 
+COMS-W4118 Columbia University
+
 ## MODIFIED/ADDED FILES:
 
 - kernel/arch/arm/include/asm/unistd.h
@@ -43,7 +45,7 @@ Copyright (C) 2014 V. Atlidakis, G. Koloventzos, A. Papancea
    http://lxr.free-electrons.com
 
 ## TEST PROGRAM OUTPUT:
-
+```
 w4118@w4118:tests(master)> adb shell /data/test_ptree
 Allocated a buffer of size: 1
 Total number of processes running: 63
@@ -136,3 +138,4 @@ swapper, 0, 0, 0, 2, 0, 0
 		jbd2/mtdblock1-, 40, 1, 2, 0, 41, 0
 		ext4-dio-unwrit, 41, 1, 2, 0, 67, 0
 		kworker/0:2, 67, 1, 2, 0, 0, 0
+```

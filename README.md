@@ -1,12 +1,8 @@
-E. Atlidakis, G. Koloventzos, A. Papancea
-UNI: ea2615, gk2409, alp2200
-Last updated: 09/29/2014
+Implementations of a DFS proc tree info utility for Android.
+==
+Copyright (C) 2014 V. Atlidakis, G. Koloventzos, A. Papancea
 
-ASSUMPTIONS:
-
-We followed the instructions without making any additional assumptions.
-
-MODIFIED/ADDED FILES:
+## MODIFIED/ADDED FILES:
 
 - kernel/arch/arm/include/asm/unistd.h
   defined syscall at position 223
@@ -41,12 +37,12 @@ MODIFIED/ADDED FILES:
 - written.txt
   answers to exercise 4
 
-RESOURCES USED:
+## RESOURCES USED:
 
 1. Linux Cross Reference
    http://lxr.free-electrons.com
 
-TEST PROGRAM OUTPUT:
+## TEST PROGRAM OUTPUT:
 
 w4118@w4118:tests(master)> adb shell /data/test_ptree
 Allocated a buffer of size: 1
